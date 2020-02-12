@@ -154,10 +154,10 @@ public class AgeModel
      */
 
     void simulate(int n, double Tmax) {
-        PQ eventQ = new PQ(); // file de priorité
+        PQ<Event> eventQ = new PQ<>(); // file de priorité
         for (int i = 0; i < n; i++) {
             Sim fondateur = new Sim(Sim.getRandomSex()); // sexe au hasard, naissance à 0.0
-            Event E = new Event(); /**TODO nouvel événement de naissance pour fondateur à 0.0*/
+            Event E = new Event(0); /**TODO nouvel événement de naissance pour fondateur à 0.0*/
             eventQ.insert(E); // insertion dans la file de priorité
         }
         while (!eventQ.isEmpty()) {
@@ -216,6 +216,21 @@ public class AgeModel
         double span = M.expectedParenthoodSpan(Sim.MIN_MATING_AGE_F, Sim.MAX_MATING_AGE_F);
         double stable_rate = 2.0/span;
         System.out.println("avg\t"+avg+"\tmating span(mother): "+span+"\tstable "+stable_rate+"\t// 1/"+span/2.0);
+
+        PQ<Event> pq = new PQ<>();
+        pq.insert(new Event(7));
+        pq.insert(new Event(4));
+        pq.insert(new Event(5));
+        pq.insert(new Event(2));
+        pq.insert(new Event(11));
+        pq.insert(new Event(8));
+        pq.insert(new Event(7));
+        pq.insert(new Event(9));
+        pq.insert(new Event(14));
+        pq.insert(new Event(16));
+        pq.insert(new Event(17));
+        pq.insert(new Event(1));
+        System.out.println(pq.toString());
     }
 
 }

@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7c2dbcd3-5b8e-4dcc-bb9c-7f158ce5974f" name="Default Changelist" comment="" />
+    <list default="true" id="7c2dbcd3-5b8e-4dcc-bb9c-7f158ce5974f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pedigree/AgeModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/AgeModel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pedigree/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/Event.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pedigree/PQ.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/PQ.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pedigree/Sim.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/Sim.java" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +21,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1Xde137foAhQv9QoFW1zLwCAr9H" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
@@ -65,5 +75,18 @@
       <updated>1581380179233</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

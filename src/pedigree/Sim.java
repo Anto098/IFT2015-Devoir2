@@ -19,8 +19,7 @@ package pedigree;
  *
  * @author Mikl&oacute;s Cs&#369;r&ouml;s
  */
-public class Sim implements Comparable<Sim>
-{
+public class Sim implements Comparable<Sim> {
     private static int NEXT_SIM_IDX=0;
 
     public static double MIN_MATING_AGE_F = 16.0;
@@ -44,7 +43,7 @@ public class Sim implements Comparable<Sim>
     public static Sex getRandomSex() {
         Sex sex;
         double random = Math.random();
-        if (random<0.45) {
+        if (random<0.485) {
             sex = Sex.F;
         }else {
             sex = Sex.M;
@@ -54,7 +53,7 @@ public class Sim implements Comparable<Sim>
 
     private final int sim_ident;
     private double birthtime;
-    private double deathtime;
+    private double deathtime; /** deathnote oups*/
     private Sim mother;
     private Sim father;
     private Sim mate;
