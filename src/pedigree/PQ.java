@@ -16,12 +16,11 @@ public class PQ<Object> implements Comparator<Object> {
             eventHeap.add(object);
             return;
         }
-
         swim(object,eventHeap.size());
     }
 
     private void swim (Object object, int index) {
-        int parentIndex = index/2;      //in java, dividing positive ints returns the whole part of the result
+        int parentIndex = (index-1)/2;      //in java, dividing positive ints returns the whole part of the result
         while(index != 0 && compare((Object) eventHeap.get(parentIndex), object) > 0) {
             if (eventHeap.size() == index) {
                 eventHeap.add(eventHeap.get(parentIndex));
@@ -30,7 +29,7 @@ public class PQ<Object> implements Comparator<Object> {
             }
 
             index = parentIndex;
-            parentIndex = index/2;
+            parentIndex = (index-1)/2;
         }
 
         if (eventHeap.size() == index) {
@@ -62,7 +61,7 @@ public class PQ<Object> implements Comparator<Object> {
 
     private int minChild(int parentIndex) {
         int j;
-        if (2*parentIndex + 1> eventHeap.size()) {      //If the parent has no children
+        if (2*parentIndex + 2> eventHeap.size()-1 || eventHeap.get(2*parentIndex+1) == null) {      //If the parent has no children
             j=-1;
         } else if ((2*parentIndex + 2 <= eventHeap.size())
                 && (compare((Object) eventHeap.get(2*parentIndex +2), (Object) eventHeap.get(2*parentIndex +1)) < 0)) {
@@ -74,10 +73,13 @@ public class PQ<Object> implements Comparator<Object> {
     }
 
     public boolean isEmpty() {
-        return true;
+        return eventHeap.size()==0;
     }
 
     public Object deleteMin() {
+        if(eventHeap.size()==1){                                            // the base case if n = 1, we want to delete the only element, instead of swapping the last one (equivalent of swapping the element with itself, won't work)
+            return (Object)eventHeap.remove(0);
+        }
         Object min = (Object) eventHeap.get(0);
         eventHeap.set(0,eventHeap.get(eventHeap.size()-1));
         Object toSink = (Object) eventHeap.remove(eventHeap.size()-1);
@@ -102,9 +104,30 @@ public class PQ<Object> implements Comparator<Object> {
                 System.out.println();
                 puissance++;
             }
-            System.out.print(((int) ((Event) eventHeap.get(i)).time) + " ");
+            if(eventHeap.get(i).getClass() == Event.class){
+                System.out.print( ( (Event)eventHeap.get(i) ).toString()+" ");
+            }
+            else if (eventHeap.get(i).getClass() == Sim.class){
+                System.out.print( Math.floor( ((Sim)eventHeap.get(i) ).getDeathTime())+" ");
+            }
 
         }
         return new String();
+    }
+
+    public ArrayList getEventHeap() {
+        return eventHeap;
+    }
+
+    public Sim getRandomDad(AgeModel M){
+        if(eventHeap.size()==0){
+            return null;
+        }
+        if(eventHeap.get(0).getClass()==Event.class) // if it's an Event PQ, return a new Sim (can't be a dad since it's 0 yrs old)
+            return null;
+        else{
+            int index = (int)(M.RND.nextDouble() * eventHeap.size()-1);
+            return (Sim)eventHeap.get(index);
+        }
     }
 }

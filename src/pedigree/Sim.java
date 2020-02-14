@@ -15,6 +15,9 @@
  */
 package pedigree;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 /**
  *
  * @author Mikl&oacute;s Cs&#369;r&ouml;s
@@ -26,6 +29,7 @@ public class Sim implements Comparable<Sim> {
     public static double MIN_MATING_AGE_M = 16.0;
     public static double MAX_MATING_AGE_F = 50.0; // Janet Jackson
     public static double MAX_MATING_AGE_M = 73.0; // Charlie Chaplin
+    public static double FIDELITY = 0.9;          // by default, 10% chances of changing partners
 
     /**
      * Ordering by death date.
@@ -110,10 +114,6 @@ public class Sim implements Comparable<Sim> {
                 && mate.getMate()==this;
     }
 
-    public void setDeath(double death) {
-        this.deathtime = death;
-    }
-
     public Sex getSex() {
         return sex;
     }
@@ -165,4 +165,26 @@ public class Sim implements Comparable<Sim> {
         return getIdentString(this)+" ["+birthtime+".."+deathtime+", mate "+getIdentString(mate)+"\tmom "+getIdentString(getMother())+"\tdad "+getIdentString(getFather())
                 +"]";
     }
+
+    protected Sim chooseMate(AgeModel M, PQ<Sim> simsQ){
+        // Random RND = new Random(); // générateur de nombres pseudoaléatoires
+        Sim y = null; Sim z;
+        if (!this.isInARelationship(M.Time) || M.RND.nextDouble()>Sim.FIDELITY) {   // if not in relationship and infidèle
+            int n = 0;
+            do {
+                n++;
+                z = simsQ.getRandomDad(M);
+                if(z == null) {return null;}                                        // if PQ is empty return null
+                if (z.getSex()!=this.getSex() && z.isMatingAge(M.Time)){            // isMatingAge() vérifie si z est de l'age adéquat
+                    if ( this.isInARelationship(M.Time) || !z.isInARelationship(M.Time) || M.RND.nextDouble()>FIDELITY) {// z accepte si x est infidèle
+                        y = z;
+                    }
+                }
+            } while (y==null & n<simsQ.getEventHeap().size());
+        } else {
+            y = mate;
+        }
+        return y;
+    }
+
 }
