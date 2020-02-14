@@ -47,6 +47,7 @@
     <configuration name="AgeModel" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="pedigree.AgeModel" />
       <module name="IFT2015-Devoir2" />
+      <option name="PROGRAM_PARAMETERS" value="0 12.5 100" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="pedigree.*" />

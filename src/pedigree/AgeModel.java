@@ -35,7 +35,7 @@ public class AgeModel
     private final double accident_rate;
     private final double age_factor;
 
-    private static final double DEFAULT_ACCIDENT_RATE = 0; // 1% chance of dying per year
+    private static final double DEFAULT_ACCIDENT_RATE = 0.01; // 1% chance of dying per year
     private static final double DEFAULT_DEATH_RATE = 12.5;
     private static final double DEFAULT_SCALE = 100.0; // "maximum" age [with death rate 1]
 
@@ -165,15 +165,16 @@ public class AgeModel
             Event E = new Event(0,fondateur,Event.eventType.Birth);
             eventQ.insert(E); // insertion dans la file de priorité
         }
+        int[] counter = new int[]{0,0,0,0,0}; // 0 = nb de fois qu'on passe dans le while /// 1 = nb de naissances /// 2 = nb de morts /// 3 = nb de matings /// 4 = nb de naissances sans les fondateurs
         while (!eventQ.isEmpty()) {
+            counter[0]++;
             Event E = eventQ.deleteMin(); // prochain événement
             Time = E.time;                // update time
-
-
             if (E.time > Tmax) break;     // arrêter à Tmax
-            if (E.subject.getDeathTime() >= E.time) {
-
+            if(E.type == Event.eventType.Birth && E.subject.getMother() != null){counter[4]++;}
+            if (E.subject.getDeathTime() >= E.time){
                 if(E.type == Event.eventType.Birth){                         // BIRTH
+                    counter[1]++;
                     double deathTime = Time+randomAge(RND);                                                 // make death time
                     eventQ.insert(new Event(deathTime,E.subject,Event.eventType.Death));                    // if it's a birth, we add a deathEvent at Time + age of the sim
                     E.subject.setDeathTime(deathTime);                                                      // set death time
@@ -181,7 +182,7 @@ public class AgeModel
                     if(E.subject.getSex() == Sim.Sex.F){
                         eventQ.insert(new Event(Time+randomWaitingTime(RND,stable_rate),E.subject,Event.eventType.Mating)); // if subject is girl, create new mating event
                     }
-                    if(!E.subject.isFounder() && E.subject.getMother().isMatingAge(Time)){
+                    if(!E.subject.isFounder() && E.subject.getMother().isMatingAge(Time)){                  // After giving birth, can the mom still have another child?
                         double nextMatingTime = Time+randomWaitingTime(RND,stable_rate);
                         if(nextMatingTime<E.subject.getMother().getDeathTime()){                            // if mother will mate again before she dies, we add the event
                             eventQ.insert(new Event(nextMatingTime,E.subject.getMother(),Event.eventType.Mating));
@@ -189,9 +190,11 @@ public class AgeModel
                     }
                 }
                 else if(E.type == Event.eventType.Death) {                   // DEATH
+                    counter[2]++;
                     simsQ.deleteMin();                                                                      // remove the sim from the list of the population
                 }
                 else if(E.type == Event.eventType.Mating) {                  // MATING
+                    counter[3]++;
                     Sim papa = E.subject.chooseMate(this, simsQ);                                       // choose new dad
                     if(papa == null){
                         eventQ.insert(new Event(Time+randomWaitingTime(RND,stable_rate),E.subject,Event.eventType.Mating)); // if she tried too many times (it's too hard to find a mate for her right now), we make a new mating event for her
@@ -210,6 +213,7 @@ public class AgeModel
             }
 
         }
+        System.out.println(Arrays.toString(counter));
     }
 
     /**
@@ -238,8 +242,7 @@ public class AgeModel
         double[] lifespan = new double[smp_size];
 
         double avg = 0.0;
-        for (int r=0; r<smp_size; r++)
-        {
+        for (int r=0; r<smp_size; r++){
             double d = M.randomAge(M.RND);
             avg += d;
             lifespan[r] = d;
@@ -248,10 +251,10 @@ public class AgeModel
         Arrays.sort(lifespan);
 
         // plot for distrubution function - 1st and 3rd columns should match (empirical vs. theoretical cumulative distribution function)
-        for (int r = 0; r<smp_size; r++)
-        {
+        /*
+        for (int r = 0; r<smp_size; r++) {
             System.out.println((1+r)+"\t"+lifespan[r]+"\t"+smp_size*(1.0-M.getSurvival(lifespan[r])));
-        }
+        }*/
         double span = M.expectedParenthoodSpan(Sim.MIN_MATING_AGE_F, Sim.MAX_MATING_AGE_F);
         M.stable_rate = 2.0/span;
         System.out.println("avg\t"+avg+"\tmating span(mother): "+span+"\tstable "+M.stable_rate+"\t// 1/"+span/2.0);
@@ -269,7 +272,7 @@ public class AgeModel
         }
          */
 
-        M.simulate(1000,100);
+        M.simulate(1000,1000);
         System.out.println("==========================================================================================\n Events");
         System.out.println(M.eventQ.toString());
         System.out.println("==========================================================================================\n Sims");

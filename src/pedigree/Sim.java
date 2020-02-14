@@ -169,8 +169,8 @@ public class Sim implements Comparable<Sim> {
     protected Sim chooseMate(AgeModel M, PQ<Sim> simsQ){
         // Random RND = new Random(); // générateur de nombres pseudoaléatoires
         Sim y = null; Sim z;
+        int n = 0;
         if (!this.isInARelationship(M.Time) || M.RND.nextDouble()>Sim.FIDELITY) {   // if not in relationship and infidèle
-            int n = 0;
             do {
                 n++;
                 z = simsQ.getRandomDad(M);
@@ -184,6 +184,7 @@ public class Sim implements Comparable<Sim> {
         } else {
             y = mate;
         }
+        System.out.println("n : "+n+" array size : " + (simsQ.getEventHeap()).size() +" time : " +M.Time);
         return y;
     }
 
