@@ -16,8 +16,11 @@
 package pedigree;
 
 
-import java.util.Arrays;
-import java.util.Random;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.*;
 
 /**
  *
@@ -29,7 +32,7 @@ import java.util.Random;
  */
 public class AgeModel
 {
-    double stable_rate;
+    private double stable_rate;
     Random RND = new Random();
     private final double death_rate;
     private final double accident_rate;
@@ -126,6 +129,7 @@ public class AgeModel
      * @param rate inverse of the mean
      * @return Exponential(rate)
      */
+
     public static double randomWaitingTime(Random RND, double rate)
     {
         return -Math.log(RND.nextDouble())/rate;
@@ -157,7 +161,21 @@ public class AgeModel
     double Time = 0;
     PQ<Event> eventQ;
     PQ<Sim> simsQ;
-    void simulate(int n, double Tmax) {
+    double totalWaiting =0;
+    int totalMatings =0;
+    private void simulate(int n, double Tmax) {
+
+        int babies=0;
+        int deadWomen=0;
+        int lastCentury=0;
+        File graphData = new File("./GraphData.csv");
+        BufferedWriter graphDataStream = null;
+        try {
+            graphDataStream = new BufferedWriter(new FileWriter(graphData));
+        } catch (Exception E) {
+            System.out.println("Error creating the graph data file.");
+        }
+
         eventQ = new PQ<>();  // file de priorité
         simsQ = new PQ<>();      // simsQ
         for (int i = 0; i < n; i++) {
@@ -165,55 +183,141 @@ public class AgeModel
             Event E = new Event(0,fondateur,Event.eventType.Birth);
             eventQ.insert(E); // insertion dans la file de priorité
         }
-        int[] counter = new int[]{0,0,0,0,0}; // 0 = nb de fois qu'on passe dans le while /// 1 = nb de naissances /// 2 = nb de morts /// 3 = nb de matings /// 4 = nb de naissances sans les fondateurs
+
         while (!eventQ.isEmpty()) {
-            counter[0]++;
+
+            if(Time/1000 <= 0.000015 && 0.0000999 <= Time/100) {
+                System.out.println("Fondateurs Time : "+(int)Time+"  Population : "+simsQ.getEventHeap().size());
+            }
+            if (Math.floor(Time/100) > lastCentury) {
+                lastCentury++;
+                try {
+                    if (graphDataStream != null) {
+                        System.out.println("Time : "+(int)Time+"  Population : "+simsQ.getEventHeap().size());
+                        graphDataStream.write(""+(int)Time+","+simsQ.getEventHeap().size());
+                        graphDataStream.newLine();
+                    }
+                } catch (Exception E) {
+                    System.out.println("Error adding data to the graph data file.");
+                }
+            }
+
+
             Event E = eventQ.deleteMin(); // prochain événement
             Time = E.time;                // update time
             if (E.time > Tmax) break;     // arrêter à Tmax
-            if(E.type == Event.eventType.Birth && E.subject.getMother() != null){counter[4]++;}
             if (E.subject.getDeathTime() >= E.time){
                 if(E.type == Event.eventType.Birth){                         // BIRTH
-                    counter[1]++;
+                    if (!E.subject.isFounder()) E.subject.getMother().nbBabies++;
+
                     double deathTime = Time+randomAge(RND);                                                 // make death time
                     eventQ.insert(new Event(deathTime,E.subject,Event.eventType.Death));                    // if it's a birth, we add a deathEvent at Time + age of the sim
                     E.subject.setDeathTime(deathTime);                                                      // set death time
                     simsQ.insert(E.subject);                                                                // insert the sim in the simsQ
                     if(E.subject.getSex() == Sim.Sex.F){
-                        eventQ.insert(new Event(Time+randomWaitingTime(RND,stable_rate),E.subject,Event.eventType.Mating)); // if subject is girl, create new mating event
+                        double waitingTime = randomWaitingTime(RND,stable_rate);
+                        totalWaiting+=waitingTime;
+                        totalMatings++;
+                        eventQ.insert(new Event(Time+waitingTime,E.subject,Event.eventType.Mating)); // if subject is girl, create new mating event
                     }
                     if(!E.subject.isFounder() && E.subject.getMother().isMatingAge(Time)){                  // After giving birth, can the mom still have another child?
-                        double nextMatingTime = Time+randomWaitingTime(RND,stable_rate);
+                        double waitingTime = randomWaitingTime(RND,stable_rate);
+                        double nextMatingTime = Time+waitingTime;
                         if(nextMatingTime<E.subject.getMother().getDeathTime()){                            // if mother will mate again before she dies, we add the event
+                            totalWaiting+=waitingTime;
+                            totalMatings++;
                             eventQ.insert(new Event(nextMatingTime,E.subject.getMother(),Event.eventType.Mating));
                         }                                                                                   // else we don't add the event because it will only increase the size of our eventQ but will never happen
                     }
                 }
                 else if(E.type == Event.eventType.Death) {                   // DEATH
-                    counter[2]++;
-                    simsQ.deleteMin();                                                                      // remove the sim from the list of the population
+                    Sim deadSim = simsQ.deleteMin();                                                                      // remove the sim from the list of the population
+                    if(deadSim.getSex()==Sim.Sex.F) {
+                        babies+=deadSim.nbBabies;
+                        deadWomen++;
+                    }
                 }
                 else if(E.type == Event.eventType.Mating) {                  // MATING
-                    counter[3]++;
-                    Sim papa = E.subject.chooseMate(this, simsQ);                                       // choose new dad
-                    if(papa == null){
-                        eventQ.insert(new Event(Time+randomWaitingTime(RND,stable_rate),E.subject,Event.eventType.Mating)); // if she tried too many times (it's too hard to find a mate for her right now), we make a new mating event for her
-                        continue;
-                    }
 
                     double age = Time - E.subject.getBirthTime();
                     if (Sim.MIN_MATING_AGE_F <= age && age <= Sim.MAX_MATING_AGE_F) {                       // if subject is between min age and max age
-                        Sim baby = new Sim(E.subject, papa, Time + 0.75, Sim.getRandomSex());         // make new baby
-                        Event birth = new Event(Time + 0.75, baby, Event.eventType.Birth);            // make new birth event
+
+                        Sim papa = E.subject.chooseMate(this, simsQ);                                       // choose new dad
+                        if(papa == null){
+                            double waitingTime = randomWaitingTime(RND,stable_rate);
+                            totalWaiting+=waitingTime;
+                            totalMatings++;
+                            eventQ.insert(new Event(Time+waitingTime,E.subject,Event.eventType.Mating)); // if she tried too many times (it's too hard to find a mate for her right now), we make a new mating event for her
+
+                            continue;
+                        }
+                        Sim baby = new Sim(E.subject, papa, Time, Sim.getRandomSex());         // make new baby
+                        Event birth = new Event(Time, baby, Event.eventType.Birth);            // make new birth event
                         eventQ.insert(birth);                                                               // put birth event in eventQ
+
+                        E.subject.setMate(papa);
+                        papa.setMate(E.subject);
+                    } else if (age <= Sim.MIN_MATING_AGE_F) {                                               // ADDED : si fille trop jeune, remettre un mating plus tard
+                        double waitingTime = randomWaitingTime(RND,stable_rate);
+                        totalWaiting+=waitingTime;
+                        totalMatings++;
+                        eventQ.insert(new Event(Time + waitingTime,E.subject,Event.eventType.Mating));
                     }
-                    E.subject.setMate(papa);
-                    papa.setMate(E.subject);
                 }
             }
 
         }
-        System.out.println(Arrays.toString(counter));
+        try {
+            graphDataStream.write(""+(int)Time+","+simsQ.getEventHeap().size());
+            graphDataStream.close();
+        } catch (Exception E){}
+
+        System.out.println("\t\t\t\t\tNumber of babies : "+babies+"   Number of dead women : "+deadWomen+"    Ratio of babies per dead women : "+(double) babies/deadWomen);
+        System.out.println("\t\t\t\t\tRatio Time/Mating : " + totalWaiting/totalMatings);
+    }
+    private void getCoalescence(PQ<Sim> simsQ){
+        HashMap<Integer,Sim> PA = new HashMap();
+        HashMap<Integer,Sim> MA = new HashMap();
+
+        TreeMap<Double, Integer> pCoalPoints = new TreeMap();
+        TreeMap<Double, Integer> mCoalPoints = new TreeMap();
+
+        File coalGraphDataPA = new File("./PA.csv");
+        File coalGraphDataMA = new File("./MA.csv");
+
+        BufferedWriter coalGraphDataStreamPA = null;
+        BufferedWriter coalGraphDataStreamMA = null;
+        try {
+            coalGraphDataStreamPA = new BufferedWriter(new FileWriter(coalGraphDataPA));
+            coalGraphDataStreamMA = new BufferedWriter(new FileWriter(coalGraphDataMA));
+        } catch (Exception E) {
+            System.out.println("Error creating the graph data files.");
+        }
+
+        while (!simsQ.isEmpty()) {
+            Sim sim = simsQ.deleteMin();
+            if (sim.getSex()==Sim.Sex.F) {
+                treatSimCoalescence(sim,MA,mCoalPoints);
+            } else {
+                treatSimCoalescence(sim,PA,pCoalPoints);
+            }
+        }
+    }
+
+    private void treatSimCoalescence(Sim sim, HashMap<Integer,Sim> PMA,TreeMap<Double,Integer> coalPoints) {
+        if (!sim.isFounder()) {
+            Sim parent = (sim.getSex()==Sim.Sex.F) ? sim.getMother() : sim.getFather();
+            if (PMA.get(parent) != null) {
+
+
+                PMA.put(parent.getSimIdent(),parent);
+            } else {
+                coalPoints.put(sim.getBirthTime(),PMA.size());
+            }
+
+            treatSimCoalescence(parent,PMA,coalPoints);
+
+        }
     }
 
     /**
@@ -237,7 +341,7 @@ public class AgeModel
             M = new AgeModel();
         }
 
-        int smp_size = 1000; // this many random values
+        int smp_size = 10000; // this many random values
 
         double[] lifespan = new double[smp_size];
 
@@ -256,7 +360,7 @@ public class AgeModel
             System.out.println((1+r)+"\t"+lifespan[r]+"\t"+smp_size*(1.0-M.getSurvival(lifespan[r])));
         }*/
         double span = M.expectedParenthoodSpan(Sim.MIN_MATING_AGE_F, Sim.MAX_MATING_AGE_F);
-        M.stable_rate = 2.0/span;
+        M.stable_rate = 2/span;
         System.out.println("avg\t"+avg+"\tmating span(mother): "+span+"\tstable "+M.stable_rate+"\t// 1/"+span/2.0);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -272,11 +376,14 @@ public class AgeModel
         }
          */
 
-        M.simulate(1000,1000);
+        M.simulate(5000,20000);
+        /*
         System.out.println("==========================================================================================\n Events");
         System.out.println(M.eventQ.toString());
         System.out.println("==========================================================================================\n Sims");
         System.out.println(M.simsQ.toString());
+
+         */
 
         System.out.println("Number of Sims : "+M.simsQ.getEventHeap().size());
     }

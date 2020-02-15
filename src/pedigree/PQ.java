@@ -105,7 +105,13 @@ public class PQ<Object> implements Comparator<Object> {
                 puissance++;
             }
             if(eventHeap.get(i).getClass() == Event.class){
-                System.out.print( ( (Event)eventHeap.get(i) ).toString()+" ");
+                String type;
+                Event e = (Event)eventHeap.get(i);
+                if (e.type == Event.eventType.Birth) type="B";
+                else if (e.type == Event.eventType.Death) type="D";
+                else if (e.type == Event.eventType.Mating) type="M";
+                else type="X";
+                System.out.print( type+"."+e.toString()+" ");
             }
             else if (eventHeap.get(i).getClass() == Sim.class){
                 System.out.print( Math.floor( ((Sim)eventHeap.get(i) ).getDeathTime())+" ");

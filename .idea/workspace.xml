@@ -2,9 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7c2dbcd3-5b8e-4dcc-bb9c-7f158ce5974f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/AgeModel.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/AgeModel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/PQ.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/PQ.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/Sim$Sex.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/Sim$Sex.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/Sim.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/IFT2015-Devoir2/pedigree/Sim.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pedigree/AgeModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/AgeModel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pedigree/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/Event.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pedigree/PQ.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/PQ.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pedigree/Sim.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/pedigree/Sim.java" afterDir="false" />
     </list>
@@ -47,7 +51,7 @@
     <configuration name="AgeModel" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="pedigree.AgeModel" />
       <module name="IFT2015-Devoir2" />
-      <option name="PROGRAM_PARAMETERS" value="0 12.5 100" />
+      <option name="PROGRAM_PARAMETERS" value="0.01 12.5 100" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="pedigree.*" />
@@ -89,16 +93,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/pedigree/PQ.java</url>
-          <line>91</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

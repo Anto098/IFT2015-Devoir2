@@ -23,6 +23,8 @@ import java.util.Random;
  * @author Mikl&oacute;s Cs&#369;r&ouml;s
  */
 public class Sim implements Comparable<Sim> {
+    public int nbBabies=0;
+
     private static int NEXT_SIM_IDX=0;
 
     public static double MIN_MATING_AGE_F = 16.0;
@@ -47,7 +49,7 @@ public class Sim implements Comparable<Sim> {
     public static Sex getRandomSex() {
         Sex sex;
         double random = Math.random();
-        if (random<0.485) {
+        if (random<0.5) {
             sex = Sex.F;
         }else {
             sex = Sex.M;
@@ -130,6 +132,10 @@ public class Sim implements Comparable<Sim> {
         this.deathtime = death_time;
     }
 
+    public int getSimIdent() {
+        return sim_ident;
+    }
+
     /**
      *
      * @return null for a founder
@@ -184,7 +190,6 @@ public class Sim implements Comparable<Sim> {
         } else {
             y = mate;
         }
-        System.out.println("n : "+n+" array size : " + (simsQ.getEventHeap()).size() +" time : " +M.Time);
         return y;
     }
 
