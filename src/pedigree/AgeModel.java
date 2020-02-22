@@ -275,56 +275,55 @@ public class AgeModel
         System.out.println("\t\t\t\t\tNumber of babies : "+babies+"   Number of dead women : "+deadWomen+"    Ratio of babies per dead women : "+(double) babies/deadWomen);
         System.out.println("\t\t\t\t\tRatio Time/Mating : " + totalWaiting/totalMatings);
     }
-    /*
+
     private void getCoalescence(PQ<Sim> simsQ){
-        PQ<Sim> simsCoaQ = new PQ<>(PQ.Types.SimBirth); // new Min Heap to put all our alive people in
-        for(var i = 0; i<simsQ.getEventHeap().size()-1;i++){
+        PQ<Sim> hCoaQ = new PQ<>(PQ.Types.SimBirth);        // new Min Heap to put all our alive people in
+        PQ<Sim> fCoaQ = new PQ<>(PQ.Types.SimBirth);        // H F = Homme Femme
 
-        }
+        while(!simsQ.isEmpty()) {
+            Sim simToAdd = simsQ.deleteMin();
+            if(simToAdd.getSex() == Sim.Sex.F)         // if it's a girl
+                fCoaQ.insert(simsQ.deleteMin());
+             else                                           // if it's a boy
+                hCoaQ.insert(simsQ.deleteMin());
+        }                       // Put people in the HCoaQ and FCoaQ
 
-        HashSet<Integer> MA = new HashSet<>();  // to keep all the ancestors that we've encountered
-        HashSet<Integer> PA = new HashSet<>();
+        HashSet<Integer> fAncestors = new HashSet<>();              // to keep all the ancestors that we've encountered
+        HashSet<Integer> hAncestors = new HashSet<>();
 
-        ArrayList<Double> mCoalPOints = new ArrayList<>();
-        ArrayList<Double> pCoalPOints = new ArrayList<>();  // keep all the coalescence points
+        HashMap<Double,Integer> hCoalPoints = new HashMap<>();
+        HashMap<Double,Integer> fCoalPoints = new HashMap<>();  // keep all the coalescence points
 
-        File coalGraphDataPA = new File("./PA.csv");
-        File coalGraphDataMA = new File("./MA.csv");
+        File coalGraphDataHA = new File("./HA.csv");
+        File coalGraphDataFA = new File("./FA.csv");
 
         BufferedWriter coalGraphDataStreamPA = null;
         BufferedWriter coalGraphDataStreamMA = null;
         try {
-            coalGraphDataStreamPA = new BufferedWriter(new FileWriter(coalGraphDataPA));
-            coalGraphDataStreamMA = new BufferedWriter(new FileWriter(coalGraphDataMA));
+            coalGraphDataStreamPA = new BufferedWriter(new FileWriter(coalGraphDataHA));
+            coalGraphDataStreamMA = new BufferedWriter(new FileWriter(coalGraphDataFA));
         } catch (Exception E) {
             System.out.println("Error creating the graph data files.");
         }
 
-        while (!simsQ.isEmpty()) {
-            Sim sim = simsQ.deleteMin();
-            if (sim.getSex()==Sim.Sex.F) {
-                treatSimCoalescence(sim,MA,mCoalPoints);
-            } else {
-                treatSimCoalescence(sim,PA,pCoalPoints);
+        treatSimCoalescence(fCoaQ,fAncestors,fCoalPoints);
+        treatSimCoalescence(hCoaQ,hAncestors,hCoalPoints);
+    }
+
+    private void treatSimCoalescence(PQ<Sim> coaQ, HashSet<Integer> ancestors, HashMap<Double,Integer> coalPoints) {
+        while(!coaQ.isEmpty()) {
+            Sim sim = coaQ.deleteMin();
+            if (!sim.isFounder()) {
+                Sim parent = (sim.getSex() == Sim.Sex.F) ? sim.getMother() : sim.getFather();
+                if (ancestors.contains(parent.getSimIdent())) {             // if the parent is already in the HashSet of ancestors
+                    coalPoints.put(sim.getBirthTime(),coaQ.getEventHeap().size()+1);                         // we add a coalpoint with his child's birthtime
+                } else {                                                    // else the parent is not already in the HashSet of ancestors
+                    ancestors.add(parent.getSimIdent());                        // add him to ancestors
+                    coaQ.insert(parent);                                        // add him to coaQ
+                }
             }
         }
     }
-
-    private void treatSimCoalescence(Sim sim, HashSet<Integer> PMA, ArrayList<Double> coalPoints) {
-        if (!sim.isFounder()) {
-            Sim parent = (sim.getSex()==Sim.Sex.F) ? sim.getMother() : sim.getFather();
-            if (PMA.get(parent) != null) {
-
-
-                PMA.put(parent.getSimIdent(),parent);
-            } else {
-                coalPoints.put(sim.getBirthTime(),PMA.size());
-            }
-
-            treatSimCoalescence(parent,PMA,coalPoints);
-
-        }
-    }*/
 
     /**
      * Test for tabulating random lifespans from command line.
