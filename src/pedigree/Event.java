@@ -6,10 +6,6 @@ public class Event implements Comparable<Event> {
     eventType type;
     public enum eventType {Birth, Death, Mating};
 
-    public Event (double time){// TODO remove this constructor, for testing/debugging purposes only
-        this.time = time;
-    }
-
     public Event (double time, Sim subject,eventType type) {
         this.time = time;
         this.subject = subject;

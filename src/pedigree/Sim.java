@@ -43,7 +43,7 @@ public class Sim implements Comparable<Sim> {
     public int compareTo(Sim o) {
         return Double.compare(this.deathtime,o.deathtime);
     }
-    public int compareBirthTime(Sim o){return Double.compare(this.birthtime,o.birthtime);}
+    public int compareBirthTime(Sim o){return -Double.compare(this.birthtime,o.birthtime);}
 
     public enum Sex {F, M};
 
@@ -177,7 +177,7 @@ public class Sim implements Comparable<Sim> {
         // Random RND = new Random(); // générateur de nombres pseudoaléatoires
         Sim y = null; Sim z;
         int n = 0;
-        if (!this.isInARelationship(M.Time) || M.RND.nextDouble()>Sim.FIDELITY) {   // if not in relationship and infidèle
+        if (!this.isInARelationship(M.Time) || M.RND.nextDouble()>Sim.FIDELITY || !mate.isMatingAge(M.Time)) {   // if not in relationship and infidèle
             do {
                 n++;
                 z = simsQ.getRandomDad(M);
@@ -187,7 +187,7 @@ public class Sim implements Comparable<Sim> {
                         y = z;
                     }
                 }
-            } while (y==null & n<simsQ.getEventHeap().size());
+            } while (y==null & n<simsQ.getDataHeap().size());
         } else {
             y = mate;
         }

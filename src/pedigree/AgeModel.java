@@ -164,17 +164,8 @@ public class AgeModel
     double totalWaiting =0;
     int totalMatings =0;
     private void simulate(int n, double Tmax) {
-
-        int babies=0;
-        int deadWomen=0;
         int lastCentury=0;
-        File graphData = new File("./GraphData.csv");
-        BufferedWriter graphDataStream = null;
-        try {
-            graphDataStream = new BufferedWriter(new FileWriter(graphData));
-        } catch (Exception E) {
-            System.out.println("Error creating the graph data file.");
-        }
+        System.out.println(0+","+n);
 
         eventQ = new PQ<>(PQ.Types.Events);  // file de priorité
         simsQ = new PQ<>(PQ.Types.SimDeath);      // simsQ
@@ -186,22 +177,10 @@ public class AgeModel
 
         while (!eventQ.isEmpty()) {
 
-            if(Time/1000 <= 0.000015 && 0.0000999 <= Time/100) {
-                System.out.println("Fondateurs Time : "+(int)Time+"  Population : "+simsQ.getEventHeap().size());
-            }
             if (Math.floor(Time/100) > lastCentury) {
                 lastCentury++;
-                try {
-                    if (graphDataStream != null) {
-                        System.out.println("Time : "+(int)Time+"  Population : "+simsQ.getEventHeap().size());
-                        graphDataStream.write(""+(int)Time+","+simsQ.getEventHeap().size());
-                        graphDataStream.newLine();
-                    }
-                } catch (Exception E) {
-                    System.out.println("Error adding data to the graph data file.");
-                }
+                System.out.println((int)Time+","+simsQ.getDataHeap().size());
             }
-
 
             Event E = eventQ.deleteMin(); // prochain événement
             Time = E.time;                // update time
@@ -232,10 +211,6 @@ public class AgeModel
                 }
                 else if(E.type == Event.eventType.Death) {                   // DEATH
                     Sim deadSim = simsQ.deleteMin();                                                                      // remove the sim from the list of the population
-                    if(deadSim.getSex()==Sim.Sex.F) {
-                        babies+=deadSim.nbBabies;
-                        deadWomen++;
-                    }
                 }
                 else if(E.type == Event.eventType.Mating) {                  // MATING
 
@@ -267,59 +242,71 @@ public class AgeModel
             }
 
         }
-        try {
-            graphDataStream.write(""+(int)Time+","+simsQ.getEventHeap().size());
-            graphDataStream.close();
-        } catch (Exception E){}
-
-        System.out.println("\t\t\t\t\tNumber of babies : "+babies+"   Number of dead women : "+deadWomen+"    Ratio of babies per dead women : "+(double) babies/deadWomen);
-        System.out.println("\t\t\t\t\tRatio Time/Mating : " + totalWaiting/totalMatings);
+        System.out.println((int)Time+","+simsQ.getDataHeap().size());
+        getCoalescence(simsQ, Tmax);
     }
 
-    private void getCoalescence(PQ<Sim> simsQ){
+    private void getCoalescence(PQ<Sim> simsQ, double Tmax){
         PQ<Sim> hCoaQ = new PQ<>(PQ.Types.SimBirth);        // new Min Heap to put all our alive people in
         PQ<Sim> fCoaQ = new PQ<>(PQ.Types.SimBirth);        // H F = Homme Femme
-
-        while(!simsQ.isEmpty()) {
-            Sim simToAdd = simsQ.deleteMin();
-            if(simToAdd.getSex() == Sim.Sex.F)         // if it's a girl
-                fCoaQ.insert(simsQ.deleteMin());
-             else                                           // if it's a boy
-                hCoaQ.insert(simsQ.deleteMin());
-        }                       // Put people in the HCoaQ and FCoaQ
 
         HashSet<Integer> fAncestors = new HashSet<>();              // to keep all the ancestors that we've encountered
         HashSet<Integer> hAncestors = new HashSet<>();
 
+        ArrayList<Sim> simsToAdd = new ArrayList<>();
+
+        while(!simsQ.isEmpty()) {                           //Preliminary check to see if some parents are still alive. If they are, we don't add them now to the CoaQ because it would duplicate them later
+            Sim simToAdd = simsQ.deleteMin();
+            Sim parent = (simToAdd.getSex() == Sim.Sex.F) ? simToAdd.getMother() : simToAdd.getFather();
+            if(simToAdd.getSex() == Sim.Sex.F) {            // if it's a girl
+                simsToAdd.add(simToAdd);
+                if (parent.getDeathTime() > Tmax) {         //if her parent is still alive, we add the parent to the ancestors
+                    fAncestors.add(parent.getSimIdent());
+                }
+            } else {                                        // if it's a boy
+                simsToAdd.add(simToAdd);
+                if (parent.getDeathTime() > Tmax) {
+                    hAncestors.add(parent.getSimIdent());   //if his parent is still alive, we add the parent to the ancestors
+                }
+            }
+        }
+
+        for (Sim simToAdd : simsToAdd) {                    // Put sims in the HCoaQ and FCoaQ
+            if(simToAdd.getSex() == Sim.Sex.F) {            // if it's a girl
+                if (!fAncestors.contains(simToAdd.getSimIdent())) {
+                    fCoaQ.insert(simToAdd);
+                }
+            } else {                                        // if it's a boy
+                if (!hAncestors.contains(simToAdd.getSimIdent())) {
+                    hCoaQ.insert(simToAdd);
+                }
+            }
+        }
+
+        fAncestors = new HashSet<>();              // we reset the ancestor sets because we used it for our preliminary check
+        hAncestors = new HashSet<>();
+
         HashMap<Double,Integer> hCoalPoints = new HashMap<>();
         HashMap<Double,Integer> fCoalPoints = new HashMap<>();  // keep all the coalescence points
 
-        File coalGraphDataHA = new File("./HA.csv");
-        File coalGraphDataFA = new File("./FA.csv");
-
-        BufferedWriter coalGraphDataStreamPA = null;
-        BufferedWriter coalGraphDataStreamMA = null;
-        try {
-            coalGraphDataStreamPA = new BufferedWriter(new FileWriter(coalGraphDataHA));
-            coalGraphDataStreamMA = new BufferedWriter(new FileWriter(coalGraphDataFA));
-        } catch (Exception E) {
-            System.out.println("Error creating the graph data files.");
-        }
-
-        treatSimCoalescence(fCoaQ,fAncestors,fCoalPoints);
+        System.out.println("\n\n\n\n\n\n\n");
         treatSimCoalescence(hCoaQ,hAncestors,hCoalPoints);
+        System.out.println("\n\n\n\n\n\n\n");
+        treatSimCoalescence(fCoaQ,fAncestors,fCoalPoints);
     }
 
     private void treatSimCoalescence(PQ<Sim> coaQ, HashSet<Integer> ancestors, HashMap<Double,Integer> coalPoints) {
         while(!coaQ.isEmpty()) {
             Sim sim = coaQ.deleteMin();
+
             if (!sim.isFounder()) {
                 Sim parent = (sim.getSex() == Sim.Sex.F) ? sim.getMother() : sim.getFather();
-                if (ancestors.contains(parent.getSimIdent())) {             // if the parent is already in the HashSet of ancestors
-                    coalPoints.put(sim.getBirthTime(),coaQ.getEventHeap().size()+1);                         // we add a coalpoint with his child's birthtime
-                } else {                                                    // else the parent is not already in the HashSet of ancestors
-                    ancestors.add(parent.getSimIdent());                        // add him to ancestors
-                    coaQ.insert(parent);                                        // add him to coaQ
+                if (ancestors.contains(parent.getSimIdent())) {                             // if the parent is already in the HashSet of ancestors
+                    coalPoints.put(sim.getBirthTime(),coaQ.getDataHeap().size());                // we add a coalpoint with his child's birthtime
+                    System.out.println(""+sim.getBirthTime()+","+coaQ.getDataHeap().size());
+                } else {                                                                    // else the parent is not already in the HashSet of ancestors
+                    ancestors.add(parent.getSimIdent());                                          // add him to ancestors
+                    coaQ.insert(parent);                                                          // add him to coaQ
                 }
             }
         }
@@ -334,61 +321,17 @@ public class AgeModel
         int arg_idx = 0;
         AgeModel M;
         if (args.length > 1) {
-            double acc = Double.parseDouble(args[arg_idx++]);
-            double dth = Double.parseDouble(args[arg_idx++]);
-            double scale = DEFAULT_SCALE;
-
-            if (arg_idx<args.length)
-                scale = Double.parseDouble(args[arg_idx++]);
-
-            M = new AgeModel(acc, dth, scale);
-        } else {
+            int n = Integer.parseInt(args[arg_idx++]);
+            double Tmax = Double.parseDouble(args[arg_idx]);
             M = new AgeModel();
+            double span = M.expectedParenthoodSpan(Sim.MIN_MATING_AGE_F, Sim.MAX_MATING_AGE_F);
+            M.stable_rate = 2/span;
+            M.simulate(n,Tmax);
+
+        } else {
+            System.out.println("Please enter arguments in the form {n, Tmax}");
         }
 
-        int smp_size = 10000; // this many random values
-
-        double[] lifespan = new double[smp_size];
-
-        double avg = 0.0;
-        for (int r=0; r<smp_size; r++){
-            double d = M.randomAge(M.RND);
-            avg += d;
-            lifespan[r] = d;
-        }
-        avg /= smp_size;
-        Arrays.sort(lifespan);
-
-        // plot for distrubution function - 1st and 3rd columns should match (empirical vs. theoretical cumulative distribution function)
-        /*
-        for (int r = 0; r<smp_size; r++) {
-            System.out.println((1+r)+"\t"+lifespan[r]+"\t"+smp_size*(1.0-M.getSurvival(lifespan[r])));
-        }*/
-        double span = M.expectedParenthoodSpan(Sim.MIN_MATING_AGE_F, Sim.MAX_MATING_AGE_F);
-        M.stable_rate = 2/span;
-        System.out.println("avg\t"+avg+"\tmating span(mother): "+span+"\tstable "+M.stable_rate+"\t// 1/"+span/2.0);
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        /*
-        int n = 7;
-        for (int i = 0; i < n; i++) {
-            Sim fondateur = new Sim(Sim.getRandomSex()); // sexe au hasard, naissance à 0.0
-            fondateur.setDeathTime(M.randomAge(M.RND));
-            sims.insert(fondateur); // insertion dans la file de priorité
-        }
-         */
-
-        M.simulate(5000,20000);
-        /*
-        System.out.println("==========================================================================================\n Events");
-        System.out.println(M.eventQ.toString());
-        System.out.println("==========================================================================================\n Sims");
-        System.out.println(M.simsQ.toString());
-
-         */
-
-        System.out.println("Number of Sims : "+M.simsQ.getEventHeap().size());
     }
 
 }
