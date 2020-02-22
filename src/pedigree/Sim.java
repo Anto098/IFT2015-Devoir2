@@ -43,6 +43,7 @@ public class Sim implements Comparable<Sim> {
     public int compareTo(Sim o) {
         return Double.compare(this.deathtime,o.deathtime);
     }
+    public int compareBirthTime(Sim o){return Double.compare(this.birthtime,o.birthtime);}
 
     public enum Sex {F, M};
 

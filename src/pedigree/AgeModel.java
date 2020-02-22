@@ -176,8 +176,8 @@ public class AgeModel
             System.out.println("Error creating the graph data file.");
         }
 
-        eventQ = new PQ<>();  // file de priorité
-        simsQ = new PQ<>();      // simsQ
+        eventQ = new PQ<>(PQ.Types.Events);  // file de priorité
+        simsQ = new PQ<>(PQ.Types.SimDeath);      // simsQ
         for (int i = 0; i < n; i++) {
             Sim fondateur = new Sim(Sim.getRandomSex()); // sexe au hasard, naissance à 0.0
             Event E = new Event(0,fondateur,Event.eventType.Birth);
@@ -275,12 +275,18 @@ public class AgeModel
         System.out.println("\t\t\t\t\tNumber of babies : "+babies+"   Number of dead women : "+deadWomen+"    Ratio of babies per dead women : "+(double) babies/deadWomen);
         System.out.println("\t\t\t\t\tRatio Time/Mating : " + totalWaiting/totalMatings);
     }
+    /*
     private void getCoalescence(PQ<Sim> simsQ){
-        HashMap<Integer,Sim> PA = new HashMap();
-        HashMap<Integer,Sim> MA = new HashMap();
+        PQ<Sim> simsCoaQ = new PQ<>(PQ.Types.SimBirth); // new Min Heap to put all our alive people in
+        for(var i = 0; i<simsQ.getEventHeap().size()-1;i++){
 
-        TreeMap<Double, Integer> pCoalPoints = new TreeMap();
-        TreeMap<Double, Integer> mCoalPoints = new TreeMap();
+        }
+
+        HashSet<Integer> MA = new HashSet<>();  // to keep all the ancestors that we've encountered
+        HashSet<Integer> PA = new HashSet<>();
+
+        ArrayList<Double> mCoalPOints = new ArrayList<>();
+        ArrayList<Double> pCoalPOints = new ArrayList<>();  // keep all the coalescence points
 
         File coalGraphDataPA = new File("./PA.csv");
         File coalGraphDataMA = new File("./MA.csv");
@@ -304,7 +310,7 @@ public class AgeModel
         }
     }
 
-    private void treatSimCoalescence(Sim sim, HashMap<Integer,Sim> PMA,TreeMap<Double,Integer> coalPoints) {
+    private void treatSimCoalescence(Sim sim, HashSet<Integer> PMA, ArrayList<Double> coalPoints) {
         if (!sim.isFounder()) {
             Sim parent = (sim.getSex()==Sim.Sex.F) ? sim.getMother() : sim.getFather();
             if (PMA.get(parent) != null) {
@@ -318,7 +324,7 @@ public class AgeModel
             treatSimCoalescence(parent,PMA,coalPoints);
 
         }
-    }
+    }*/
 
     /**
      * Test for tabulating random lifespans from command line.
@@ -365,8 +371,6 @@ public class AgeModel
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        PQ<Event> pq = new PQ<>();
-        PQ<Sim> sims = new PQ<>();
         /*
         int n = 7;
         for (int i = 0; i < n; i++) {

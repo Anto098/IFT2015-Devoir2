@@ -2,12 +2,13 @@ package pedigree;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-
 public class PQ<Object> implements Comparator<Object> {
     private ArrayList eventHeap;
     double d;
-
-    public PQ () {
+    Types type;
+    public enum Types {Events,SimDeath,SimBirth};
+    public PQ (Types type) {
+        this.type = type;
         eventHeap = new ArrayList<Object>();
     }
 
@@ -89,10 +90,12 @@ public class PQ<Object> implements Comparator<Object> {
 
     @Override
     public int compare(Object object, Object t1) {
-        if (object instanceof Sim) {
+        if (type == Types.SimDeath) {
             return ((Sim) object).compareTo((Sim) t1);
-        } else {
+        } else if (type == Types.Events) {
             return ((Event) object).compareTo((Event) t1);
+        } else {   // if type == Types.SimBirth
+            return ((Sim) object).compareBirthTime((Sim) t1);
         }
     }
 
